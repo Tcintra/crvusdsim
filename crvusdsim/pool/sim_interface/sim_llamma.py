@@ -141,7 +141,7 @@ class SimLLAMMAPool(AssetIndicesMixin, LLAMMAPool):
 
     
     @override
-    def prepare_for_run(self, prices):
+    def prepare_for_run(self, prices, keep_price: bool = False):
         """
         Sets price parameters to the first simulation price and updates
         balances to be equally-valued.
@@ -152,15 +152,17 @@ class SimLLAMMAPool(AssetIndicesMixin, LLAMMAPool):
             The price time_series, price_sampler.prices.
         """
         super().prepare_for_run(prices)
-        # Get/set initial prices
-        initial_price = int(prices.iloc[0, :].tolist()[0] * 10**18)
+
+        if not keep_price:
+            # Get/set initial prices
+            initial_price = int(prices.iloc[0, :].tolist()[0] * 10**18)
+            self.price_oracle_contract.set_price(initial_price)
+            self.price_oracle_contract._price_oracle = initial_price
+            self.price_oracle_contract._price_last = initial_price
+
         init_ts = int(prices.index[0].timestamp())
-        
         self.prev_p_o_time = init_ts
         self.rate_time = init_ts
-        self.price_oracle_contract.set_price(initial_price)
-        self.price_oracle_contract._price_oracle = initial_price
-        self.price_oracle_contract._price_last = initial_price
         self.price_oracle_contract._increment_timestamp(timestamp=init_ts)
         self.price_oracle_contract.last_prices_timestamp = init_ts
 

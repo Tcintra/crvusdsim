@@ -222,7 +222,7 @@ class SimCurveStableSwapPool(SimPool, AssetIndicesMixin, CurveStableSwapPool):
         raise CurvesimValueError("get_amount_for_price faild.")
 
     @override
-    def prepare_for_run(self, prices):
+    def prepare_for_run(self, prices, keep_price: bool = False):
         """
         Sets price parameters to the first simulation price and updates
         balances to be equally-valued.
@@ -233,21 +233,23 @@ class SimCurveStableSwapPool(SimPool, AssetIndicesMixin, CurveStableSwapPool):
             The price time_series, price_sampler.prices.
         """
         super().prepare_for_run(prices)
-        # Get/set initial prices
-        initial_price = int(prices.iloc[0, :].tolist()[0] * 10**18)
+        if not keep_price:
+            # Get/set initial prices
+            initial_price = int(prices.iloc[0, :].tolist()[0] * 10**18)
+
+            amount, pump = self.get_amount_for_price(initial_price)
+            if pump:
+                self.trade(0, 1, amount)
+            else:
+                self.trade(1, 0, amount)
+
+            amm_p = self.get_p()
+            assert abs(abs(amm_p / initial_price) - 1) < 1e-4
+
+            self.last_price = amm_p
+            self.ma_price = amm_p
+        
         init_ts = int(prices.index[0].timestamp())
-
-        amount, pump = self.get_amount_for_price(initial_price)
-        if pump:
-            self.trade(0, 1, amount)
-        else:
-            self.trade(1, 0, amount)
-
-        amm_p = self.get_p()
-        assert abs(abs(amm_p / initial_price) - 1) < 1e-4
-
-        self.last_price = amm_p
-        self.ma_price = amm_p
         self.ma_last_time = init_ts
 
     def prepare_for_trades(self, timestamp):

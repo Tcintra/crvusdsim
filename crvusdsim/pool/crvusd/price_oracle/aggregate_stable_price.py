@@ -231,14 +231,16 @@ class AggregateStablePrice(BlocktimestampMixins):
             return p
 
     @override
-    def prepare_for_run(self, price_sampler: PriceVolume):
-        init_ts = None
-        init_agg_p = []
-        for prices in price_sampler.peg_prices.values():
-            init_agg_p.append(int(prices.iloc[0, :].tolist()[0] * 10**18))
-            if init_ts is None:
-                init_ts = int(prices.index[0].timestamp())
+    def prepare_for_run(self, price_sampler: PriceVolume, keep_price: bool = False):
+        super().prepare_for_run(price_sampler.prices)
+        self.last_timestamp = self._block_timestamp
 
-        self._increment_timestamp(init_ts)
-        self.last_price = mean(init_agg_p)
-        self.last_timestamp = init_ts
+        if not keep_price:
+            # Get/set initial prices
+            init_ts = None
+            init_agg_p = []
+            for prices in price_sampler.peg_prices.values():
+                init_agg_p.append(int(prices.iloc[0, :].tolist()[0] * 10**18))
+                if init_ts is None:
+                    init_ts = int(prices.index[0].timestamp())
+            self.last_price = mean(init_agg_p)
