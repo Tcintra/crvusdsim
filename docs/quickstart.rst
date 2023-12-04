@@ -22,12 +22,17 @@ Hello world
 Before digging into more interesting examples, let's check the installed package can
 run without issues.  In the console, run::
 
-   $ python3 -m crvusdsim
-   [INFO][12:46:49][crvusdsim.pipelines.simple]-31028: Simulating mode: pool
-   [INFO][12:46:52][curvesim.price_data.sources]-31028: Fetching CoinGecko price data...
-   [INFO][12:46:57][crvusdsim.templates.Strategy]-31041: [Curve.fi Stablecoin wstETH] Simulating with {'A': 50}
-   [INFO][12:46:57][crvusdsim.templates.Strategy]-31044: [Curve.fi Stablecoin wstETH] Simulating with {'A': 100}
-   Elapsed time: 9.923296928405762
+    $ python3 -m crvusdsim
+    [INFO][11:29:54][crvusdsim.pipelines.simple]-92751: Simulating mode: rate
+    [INFO][11:29:57][curvesim.price_data.sources]-92751: Fetching CoinGecko price data...
+    [INFO][11:30:08][curvesim.price_data.sources]-92751: Fetching CoinGecko price data...
+    [INFO][11:30:08][curvesim.price_data.sources]-92751: Fetching CoinGecko price data...
+    [INFO][11:30:08][curvesim.price_data.sources]-92751: Fetching CoinGecko price data...
+    [INFO][11:30:09][curvesim.price_data.sources]-92751: Fetching CoinGecko price data...
+    [INFO][11:30:16][crvusdsim.templates.Strategy]-92883: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.15}
+    [INFO][11:30:16][crvusdsim.templates.Strategy]-92880: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.1}
+    [INFO][11:30:16][crvusdsim.templates.Strategy]-92877: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.05}
+    Elapsed time: 28.6576099395752
 
 
 Fetch a series of objects from Curve stablecoin `wstETH` market
@@ -147,8 +152,53 @@ the valid value is `pool` or `controller`::
 
 
 
-Run an arbitrage simulation for a proposed A parameter
-------------------------------------------------------
+Run an arbitrage simulation for a proposed parameter
+----------------------------------------------------
+
+
+Rate simulations to see results of varying `rate0` parameters in `MonetaryPolicy`::
+
+    >>> import crvusdsim
+    >>> res = crvusdsim.autosim(pool="wstETH", sim_mode="rate", rate0=[0.05, 0.075, 0.10, 0.125, 0.15])
+
+    [INFO][10:02:42][crvusdsim.pipelines.simple]-84886: Simulating mode: rate
+    [INFO][10:02:50][curvesim.price_data.sources]-84886: Fetching CoinGecko price data...
+    [INFO][10:03:51][curvesim.price_data.sources]-84886: Fetching CoinGecko price data...
+    [INFO][10:03:52][curvesim.price_data.sources]-84886: Fetching CoinGecko price data...
+    [INFO][10:05:44][curvesim.price_data.sources]-84886: Fetching CoinGecko price data...
+    [INFO][10:07:22][curvesim.price_data.sources]-84886: Fetching CoinGecko price data...
+    [INFO][10:07:32][crvusdsim.templates.Strategy]-84936: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.05}
+    [INFO][10:07:32][crvusdsim.templates.Strategy]-84937: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.125}
+    [INFO][10:07:32][crvusdsim.templates.Strategy]-84935: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.075}
+    [INFO][10:07:32][crvusdsim.templates.Strategy]-84934: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.1}
+    [INFO][10:07:33][crvusdsim.templates.Strategy]-84938: [Curve.fi Stablecoin wstETH] Simulating with {'rate0': 0.15}
+
+    >>> res.summary()
+
+    metric	annualized_rate	users_debt	crvusd_price	agg_price
+    stat	mean	mean	mean	mean
+    0	0.044408	1.580274e+06	1.002537	1.002775
+    1	0.066533	1.583135e+06	1.002537	1.002775
+    2	0.088607	1.585936e+06	1.002537	1.002775
+    3	0.110631	1.588681e+06	1.002537	1.002775
+    4	0.132608	1.591372e+06	1.002537	1.002775
+
+    >>> res.data()
+
+      run	timestamp	annualized_rate	users_debt	crvusd_price	agg_price
+    0	0	2023-10-03 23:30:00+00:00	0.046259	1.574365e+06	1.001229	1.001890
+    1	0	2023-10-03 23:38:34+00:00	0.046259	1.574366e+06	1.001229	1.001890
+    2	0	2023-10-03 23:47:08+00:00	0.046259	1.574367e+06	1.001229	1.001890
+    3	0	2023-10-03 23:55:42+00:00	0.046259	1.574368e+06	1.001229	1.001890
+    4	0	2023-10-04 00:04:17+00:00	0.046259	1.574369e+06	1.001229	1.001890
+    ...	...	...	...	...	...	...
+    51240	4	2023-12-03 22:55:42+00:00	0.123962	1.607443e+06	1.003847	1.003959
+    51241	4	2023-12-03 23:04:17+00:00	0.123962	1.607447e+06	1.003847	1.003959
+    51242	4	2023-12-03 23:12:51+00:00	0.123962	1.607450e+06	1.003847	1.003959
+    51243	4	2023-12-03 23:21:25+00:00	0.123962	1.607453e+06	1.003847	1.003959
+    51244	4	2023-12-03 23:30:00+00:00	0.124045	1.607456e+06	1.003847	1.003946
+
+    51245 rows x 6 columns
 
 Tuning a pool parameter, such as the amplification coefficient ``A``.::
 
@@ -162,7 +212,7 @@ Tuning a pool parameter, such as the amplification coefficient ``A``.::
 
 Likely you will want to see the impact over a range of ``A`` values.  The ``A`` and ``fee`` parameters 
 will accept either a integer or iterables of integers; note ``fee`` values are in units of basis points 
-multiplied by 10**6.::
+multiplied by 10**18.::
     
     >>> res = crvusdsim.autosim(pool="wstETH", sim_mode="pool", A=[50, 60, 80, 100], fee=[6 * 10**15, 10 * 10**15])
 
@@ -298,8 +348,6 @@ To simlate ``create_loan`` with different ``N`` parameters, use ``sim_mode="N"``
     71743 rows x 3 columns
 
 
-
-
 Results
 -------
 
@@ -319,12 +367,44 @@ The ``plot()`` method is used to generate and/or save plots::
 Screenshots of resulting plots (truncated):
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: images/plot_summary_screenshot.png
+``sim_mode="rate"``
+
+.. image:: images/rate_plot_summary_screenshot.png
   :width: 700
   :alt: Summary statistics
 
-.. image:: images/plot_timeseries_screenshot.png
+.. image:: images/rate_plot_timeseries_screenshot.png
   :width: 700
+  :alt: Timeseries data
+
+``sim_mode="pool"``
+
+.. image:: images/pool_plot_summary_screenshot.png
+  :width: 700
+  :alt: Summary statistics
+
+.. image:: images/pool_plot_timeseries_screenshot.png
+  :width: 700
+  :alt: Timeseries data
+
+``sim_mode="controller"``
+
+.. image:: images/controller_plot_summary_screenshot.png
+  :width: 700
+  :alt: Summary statistics
+
+.. image:: images/controller_plot_timeseries_screenshot.png
+  :width: 700
+  :alt: Timeseries data
+
+``sim_mode="N"``
+
+.. image:: images/N_plot_summary_screenshot.png
+  :width: 350
+  :alt: Summary statistics
+
+.. image:: images/N_plot_timeseries_screenshot.png
+  :width: 350
   :alt: Timeseries data
 
 Metrics
@@ -453,7 +533,7 @@ Errors and Exceptions
 ---------------------
 
 All exceptions that crvUSDsim explicitly raises inherit from
-:exc:`curvesim.exceptions.crvUSDsimException`.
+:exc:`curvesim.exceptions.curvesimException`.
 
 
 -----------------------
