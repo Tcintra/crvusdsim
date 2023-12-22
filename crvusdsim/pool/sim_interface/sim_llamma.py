@@ -156,6 +156,7 @@ class SimLLAMMAPool(AssetIndicesMixin, LLAMMAPool):
         if not keep_price:
             # Get/set initial prices
             initial_price = int(prices.iloc[0, :].tolist()[0] * 10**18)
+            self.old_p_o = initial_price
             self.price_oracle_contract.set_price(initial_price)
             self.price_oracle_contract._price_oracle = initial_price
             self.price_oracle_contract._price_last = initial_price
