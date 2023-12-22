@@ -589,7 +589,7 @@ async def market_snapshot(
         debt_ceilings[address] = await get_debt_ceiling(address)
 
     # fix base price
-    r["basePrice"] = str(float(r["basePrice"]) / float(r["llammaRate"]["rateMul"]))
+    r["basePrice"] = str(float(r["basePrice"]) / float(r["llammaRate"]["rateMul"]) * 1e18)
 
     # Output
     data = {
