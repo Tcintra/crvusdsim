@@ -11,7 +11,7 @@ packages = [{ include = "crvusdsim" }]
 # use `poetry export` command to generate requirements.txt file
 # poetry export --without-hashes --without-urls | awk '{ print $1 }' FS=';' > requirements.txt
 python = "^3.10"
-curvesim = { git = "https://github.com/curveresearch/curvesim.git", branch = "main" }
+curvesim = "0.5.0"
 pytest = "^7.4.3"
 hypothesis = "^6.90.0"
 black = "^23.12.1"
